@@ -1,5 +1,5 @@
 from flask import Flask, request
-from flask_restful import Resource,Api
+from flask_restful import Resource,Api, reqparse
 from flask_jwt import JWT, jwt_required
 from security import authenticate,identity
 
@@ -18,15 +18,26 @@ this results in looking for an /auth endpoint request which has body like:
 }
 """
 jwt = JWT(app, authenticate, identity)  
-
-#create an Item resource
+#an items list which is globally accessible
 items = []
+#create an Item resource 
+
 class Item(Resource):
 	"""
 	the function names should correspond to the HTTP verbs get, put, post, delete,etc.
 	No app.route() decorator is required.
 
 	"""
+
+	#create a parser for parsing JSON arguments to make the price key compulsory for POST/PUT
+	#we expect only price from the JSON as name is taken from the endpoint
+	parser = reqparse.RequestParser()
+	parser.add_argument('price',
+		type = float,
+		required = True,
+		help = 'Price of the item in dollars'
+		)
+
 	@jwt_required() #this makes it compulsory to use jwt token in Authorization header
 	def get(self, name):
 		item = next(filter(lambda x: x['name'] == name, items), None)
@@ -43,10 +54,37 @@ class Item(Resource):
 		item = next(filter(lambda x: x['name'] == name, items), None)
 		if item:
 			return {'message': 'item already exists'}, 400
-		data = request.get_json()
-		item = {'name': data['name'], 'price': data['price']}
+		#only parse the data after handling possible errors othewise parsing data would be a waste 
+		data = Item.parser.parse_args()
+		item = {'name': name, 'price': data['price']}
 		items.append(item)
 		return {'item': item}, 201
+
+	def delete(self, name):
+		"""
+		Deletes an aleady existing item
+		"""
+		global items
+		item = next(filter(lambda x: x['name'] == name, items), None)
+		if not item:
+			return {'message': 'item does not exist'}, 400
+		 #Refer to the global items list instead of creating a local variable
+		items = list(filter(lambda x: x['name'] != name, items))
+		return {'items': items}, 201
+
+	def put(self, name):
+		"""
+		Check if an item exists. If it exists, then modify it, otherwise create a new one.
+		"""
+		data = Item.parser.parse_args()
+		item = next(filter(lambda x: x['name'] == name, items), None)
+		if not item:
+			new_item = {'name': name, 'price': data['price']}
+			items.append(new_item)
+			return {'item': new_item}, 201
+		item.update(data)
+		return {'item': item}, 201
+
 
 
 class ItemsList(Resource):
