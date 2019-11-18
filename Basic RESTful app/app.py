@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_restful import Resource,Api, reqparse
 from flask_jwt import JWT, jwt_required
 from security import authenticate,identity
+from userregister import UserRegister
 
 app = Flask(__name__)
 #create a secret key for app for encoding purpose
@@ -94,6 +95,7 @@ class ItemsList(Resource):
 #add our resources to our API and also specify the common endpoints for all our HTTP requests
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(ItemsList, '/items')
+api.add_resource(UserRegister, '/register')
 
 #run our app
 app.run(port=5002, debug=True)
