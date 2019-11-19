@@ -12,8 +12,20 @@ class UserRegister(Resource):
 		required=True,
 		help="Please enter the password")
 
+	@classmethod
+	def find_by_name(cls, name):
+		connection = sqlite3.connect('data.db')
+		cursor = connection.cursor()
+		query = "SELECT * FROM users WHERE username=?"
+		result = cursor.execute(query, (name,))
+		row = result.fetchone()
+		return row
+
 	def post(self):
 		data = UserRegister.parser.parse_args()
+		user = UserRegister.find_by_name(data['username'])
+		if user:
+			return {'message': 'A user with the given name already exists'}
 		connection = sqlite3.connect('data.db')
 		cursor = connection.cursor()
 		query = "INSERT into users VALUES(NULL, ?, ?)"
