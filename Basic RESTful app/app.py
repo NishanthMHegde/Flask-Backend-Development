@@ -2,8 +2,9 @@ from flask import Flask
 from flask_restful import Resource,Api
 from flask_jwt import JWT
 from security import authenticate,identity
-from userregister import UserRegister
-from item import Item, ItemsList
+from resources.userregister import UserRegister
+from resources.item import Item
+from resources.itemlist import ItemsList
 
 app = Flask(__name__)
 #create a secret key for app for encoding purpose
