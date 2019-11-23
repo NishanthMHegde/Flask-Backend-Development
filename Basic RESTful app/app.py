@@ -6,9 +6,12 @@ from resources.userregister import UserRegister
 from resources.item import Item
 from resources.itemlist import ItemsList
 
+
 app = Flask(__name__)
 #create a secret key for app for encoding purpose
 app.secret_key = "nishanth"
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 #add our app to our API
 api = Api(app)
@@ -31,4 +34,6 @@ api.add_resource(UserRegister, '/register')
 
 #run our app only if this app.py file is called as the main function
 if __name__ == "__main__":
+	from db import db
+	db.init_app(app)
 	app.run(port=5002, debug=True)

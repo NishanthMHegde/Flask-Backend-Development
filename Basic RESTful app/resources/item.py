@@ -46,8 +46,9 @@ class Item(Resource):
 		new_item = ItemModel(name, data['price'])
 		#only parse the data after handling possible errors othewise parsing data would be a waste
 		try:
-			new_item.insert_item()
-		except:
+			new_item.save_to_db()
+		except Exception as e:
+			print(e)
 			return {'message': 'An error occurred during the adding of a new item'}, 500
 		return {'message': 'Item was created successfully'}, 201
 
@@ -84,15 +85,17 @@ class Item(Resource):
 		# return {'item': item}, 201
 		data = Item.parser.parse_args()
 		item = ItemModel.find_by_name(name)
-		updated_item = ItemModel(name, data['price'])
+		
 		if not item:
 			try:
-				updated_item.insert_item()
+				new_item = ItemModel(name, data['price'])
+				new_item.save_to_db()
 				return {'message': 'Item was added successfully'}
 			except:
 				return {'message': 'An error occurred during the adding of a new item'}, 500
 		try:
-			updated_item.update_item()
+			item.price = data['price']
+			item.save_to_db()
 		except:
 			return {'message': 'An error occurred during the item update'}, 500
 		return {'message': 'Item was modified successfully'}
