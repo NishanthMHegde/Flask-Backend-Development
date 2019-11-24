@@ -6,8 +6,7 @@ class UsersModel(db.Model):
 	username = db.Column(db.String(50))
 	password = db.Column(db.String(50))
 
-	def __init__(self, id, username, password):
-		self.id = id
+	def __init__(self, username, password):
 		self.username = username
 		self.password = password
 
@@ -44,3 +43,7 @@ class UsersModel(db.Model):
 		# connection.close()
 		user = cls.query.filter_by(id=id).first()
 		return user
+
+	def save_to_db(self):
+		db.session.add(self)
+		db.session.commit()

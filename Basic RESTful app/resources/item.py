@@ -18,6 +18,11 @@ class Item(Resource):
 		required = True,
 		help = 'Price of the item in dollars'
 		)
+	parser.add_argument('store_id',
+		type = int,
+		required = True,
+		help = 'Store id of the store for which the item belongs to'
+		)
 
 	@jwt_required() #this makes it compulsory to use jwt token in Authorization header
 	def get(self, name):
@@ -43,7 +48,7 @@ class Item(Resource):
 		if item:
 			return {'message': 'An item with the given name already exists in the database'}, 400
 		data = Item.parser.parse_args()
-		new_item = ItemModel(name, data['price'])
+		new_item = ItemModel(name, data['price'], data['store_id'])
 		#only parse the data after handling possible errors othewise parsing data would be a waste
 		try:
 			new_item.save_to_db()
@@ -88,13 +93,14 @@ class Item(Resource):
 		
 		if not item:
 			try:
-				new_item = ItemModel(name, data['price'])
+				new_item = ItemModel(name, data['price'], data['store_id'])
 				new_item.save_to_db()
 				return {'message': 'Item was added successfully'}
 			except:
 				return {'message': 'An error occurred during the adding of a new item'}, 500
 		try:
 			item.price = data['price']
+			item.store_id = data['store_id']
 			item.save_to_db()
 		except:
 			return {'message': 'An error occurred during the item update'}, 500
